@@ -138,34 +138,51 @@
   .toast.error { border-color: #8B3A3A; color: #F0A0A0; }
   .toast.success { border-color: var(--gold-dark); color: var(--gold-light); }
 
-  /* FLOATING SCISSORS BACKGROUND */
-  .scissors-bg {
+  .app { position: relative; z-index: 1; }
+
+  /* BARBER POLE BACKGROUND */
+  .barberpole-bg {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     pointer-events: none;
-    overflow: hidden;
     z-index: 0;
+    overflow: hidden;
   }
-  .scissor-item {
+  .barberpole-bg::before {
+    content: '';
     position: absolute;
-    opacity: 0.04;
-    animation: floatScissor linear infinite;
-    color: var(--gold);
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(201, 168, 76, 0.07) 40px,
+      rgba(201, 168, 76, 0.07) 60px,
+      transparent 60px,
+      transparent 100px,
+      rgba(180, 30, 30, 0.05) 100px,
+      rgba(180, 30, 30, 0.05) 120px,
+      transparent 120px,
+      transparent 160px,
+      rgba(240, 240, 240, 0.03) 160px,
+      rgba(240, 240, 240, 0.03) 180px
+    );
+    animation: barpoleSlide 12s linear infinite;
   }
-  .scissor-item svg { fill: var(--gold); }
-  @keyframes floatScissor {
-    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-    10%  { opacity: 0.045; }
-    90%  { opacity: 0.045; }
-    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  @keyframes barpoleSlide {
+    0%   { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(200px) translateY(200px); }
   }
   .app { position: relative; z-index: 1; }
 </style>
 </head>
 <body>
 
-<div class="scissors-bg" id="scissorsBg"></div>
+<div class="barberpole-bg"></div>
 <div class="app">
   <div class="header">
     <span class="header-scissors">✂️</span>
@@ -543,33 +560,7 @@ function resetApp() {
 }
 
 
-// ── Floating scissors background ────────────────────────────────
-(function() {
-  const bg = document.getElementById('scissorsBg');
-  const scissorSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <circle cx="32" cy="28" r="12" fill="none" stroke="currentColor" stroke-width="6"/>
-    <circle cx="68" cy="28" r="12" fill="none" stroke="currentColor" stroke-width="6"/>
-    <line x1="40" y1="35" x2="60" y2="65" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <line x1="60" y1="35" x2="40" y2="65" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <line x1="32" y1="40" x2="32" y2="80" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-    <line x1="68" y1="40" x2="68" y2="80" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-  </svg>`;
 
-  const count = 12;
-  for (let i = 0; i < count; i++) {
-    const el = document.createElement('div');
-    el.className = 'scissor-item';
-    const size = Math.random() * 40 + 25;
-    el.style.width = size + 'px';
-    el.style.height = size + 'px';
-    el.style.left = (Math.random() * 100) + '%';
-    el.style.animationDuration = (Math.random() * 20 + 18) + 's';
-    el.style.animationDelay = (Math.random() * -30) + 's';
-    el.style.color = '#C9A84C';
-    el.innerHTML = scissorSVG;
-    bg.appendChild(el);
-  }
-})();
 
 // ── Init ─────────────────────────────────────────────────────────
 renderCalendar();
