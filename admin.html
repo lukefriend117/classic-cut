@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classic Cut — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #E8C97A; --gold-dark: #9A7A2E;
+    --dark: #0E0E0E; --dark2: #1A1A1A; --dark3: #252525; --dark4: #303030;
+    --text: #F0EAD6; --text-muted: #9A9080; --text-faint: #5A5248;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dark); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh;
+    background-image: radial-gradient(ellipse at 20% 0%, #2a200a 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 100%, #1a1408 0%, transparent 60%);
+  }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .login-box {
+    background: var(--dark2); border: 1px solid var(--dark4); border-radius: var(--radius);
+    padding: 2.5rem 2rem; width: 100%; max-width: 360px; text-align: center;
+  }
+  .login-box h1 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold-light); margin-bottom: 6px; }
+  .login-box p { font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem; }
+  .input-field {
+    width: 100%; background: var(--dark3); border: 1px solid var(--dark4); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif;
+    outline: none; margin-bottom: 1rem; text-align: center; letter-spacing: 0.2em;
+  }
+  .input-field:focus { border-color: var(--gold); }
+  .btn-login {
+    width: 100%; padding: 13px; background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    color: var(--dark); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,0.3); }
+  .login-error { color: #F0A0A0; font-size: 12px; margin-top: 10px; display: none; }
+
+  /* DASHBOARD */
+  .dashboard { display: none; max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+  .dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--dark4); }
+  .dash-header h1 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold-light); }
+  .dash-header p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .btn-logout { background: none; border: 1px solid var(--dark4); border-radius: var(--radius-sm); padding: 7px 16px; font-size: 12px; cursor: pointer; color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .btn-logout:hover { border-color: #8B3A3A; color: #F0A0A0; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: var(--dark2); border: 1px solid var(--dark4); border-radius: var(--radius); padding: 1.25rem; text-align: center; }
+  .stat-number { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--gold-light); }
+  .stat-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+  /* SECTIONS */
+  .section-title {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1rem; font-weight: 500; display: flex; align-items: center; gap: 8px;
+  }
+  .badge { background: var(--gold); color: var(--dark); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 500; }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--dark4); background: var(--dark2); color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+
+  /* BOOKING CARDS */
+  .bookings-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2.5rem; }
+  .booking-card {
+    background: var(--dark2); border: 1px solid var(--dark4); border-radius: var(--radius);
+    padding: 1rem 1.25rem; display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center;
+    transition: border-color 0.2s;
+  }
+  .booking-card:hover { border-color: var(--dark3); }
+  .booking-time { text-align: center; min-width: 70px; }
+  .booking-time .time { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--gold-light); }
+  .booking-time .period { font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; }
+  .booking-info .client { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .booking-info .details { font-size: 12px; color: var(--text-muted); }
+  .booking-info .phone { font-size: 12px; color: var(--gold); margin-top: 2px; }
+  .barber-tag { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em; }
+  .barber-Alind { background: rgba(31,120,90,0.15); color: #4ECBA0; border: 1px solid rgba(78,203,160,0.2); }
+  .barber-Bariz { background: rgba(60,90,160,0.15); color: #7AABF0; border: 1px solid rgba(122,171,240,0.2); }
+  .barber-Laween { background: rgba(160,60,90,0.15); color: #F0849A; border: 1px solid rgba(240,132,154,0.2); }
+
+  .empty-state { text-align: center; padding: 2.5rem; color: var(--text-faint); font-size: 13px; background: var(--dark2); border: 1px solid var(--dark4); border-radius: var(--radius); }
+  .loading { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 13px; }
+
+  /* REFRESH */
+  .btn-refresh { background: none; border: 1px solid var(--dark4); border-radius: var(--radius-sm); padding: 7px 16px; font-size: 12px; cursor: pointer; color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; margin-bottom: 1.5rem; }
+  .btn-refresh:hover { border-color: var(--gold-dark); color: var(--gold); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div style="font-size:36px; margin-bottom:1rem;">✂️</div>
+    <h1>Classic Cut</h1>
+    <p>Admin Dashboard</p>
+    <input class="input-field" type="password" id="passwordInput" placeholder="Enter password" onkeydown="if(event.key==='Enter') login()">
+    <button class="btn-login" onclick="login()">Enter Dashboard</button>
+    <div class="login-error" id="loginError">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="dash-header">
+    <div>
+      <h1>✂️ Classic Cut</h1>
+      <p id="dashDate"></p>
+    </div>
+    <button class="btn-logout" onclick="logout()">Log Out</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="statToday">—</div>
+      <div class="stat-label">Today's Bookings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statUpcoming">—</div>
+      <div class="stat-label">Upcoming Bookings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statTotal">—</div>
+      <div class="stat-label">Total This Month</div>
+    </div>
+  </div>
+
+  <button class="btn-refresh" onclick="loadAll()">↻ Refresh</button>
+
+  <!-- Today -->
+  <div class="section-title">Today's Appointments <span class="badge" id="todayBadge">0</span></div>
+  <div class="filter-tabs">
+    <button class="filter-btn active" onclick="filterToday('all', this)">All Barbers</button>
+    <button class="filter-btn" onclick="filterToday('Alind', this)">Alind</button>
+    <button class="filter-btn" onclick="filterToday('Bariz', this)">Bariz</button>
+    <button class="filter-btn" onclick="filterToday('Laween', this)">Laween</button>
+  </div>
+  <div class="bookings-list" id="todayList"><div class="loading">Loading…</div></div>
+
+  <!-- Upcoming -->
+  <div class="section-title">Upcoming Appointments <span class="badge" id="upcomingBadge">0</span></div>
+  <div class="filter-tabs">
+    <button class="filter-btn active" onclick="filterUpcoming('all', this)">All Barbers</button>
+    <button class="filter-btn" onclick="filterUpcoming('Alind', this)">Alind</button>
+    <button class="filter-btn" onclick="filterUpcoming('Bariz', this)">Bariz</button>
+    <button class="filter-btn" onclick="filterUpcoming('Laween', this)">Laween</button>
+  </div>
+  <div class="bookings-list" id="upcomingList"><div class="loading">Loading…</div></div>
+</div>
+
+<script>
+const { createClient } = supabase;
+const db = createClient('https://nqwsgonvvavzjoasalbu.supabase.co', 'sb_publishable_d0UzXgwAofNsj4kOf34bKg_AVtiiTQv');
+
+const PASSWORD = '101010';
+let allToday = [];
+let allUpcoming = [];
+
+function login() {
+  const val = document.getElementById('passwordInput').value;
+  if (val === PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    initDashboard();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('passwordInput').value = '';
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function initDashboard() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('dashDate').textContent = now.toLocaleDateString('en-GB', opts);
+  loadAll();
+}
+
+async function loadAll() {
+  const today = getTodayStr();
+
+  // Load today
+  const { data: todayData } = await db.from('bookings').select('*').eq('date', today).order('time_slot', { ascending: true });
+  allToday = todayData || [];
+
+  // Load upcoming (after today)
+  const { data: upcomingData } = await db.from('bookings').select('*').gte('date', today).neq('date', today).order('date', { ascending: true }).order('time_slot', { ascending: true });
+  allUpcoming = upcomingData || [];
+
+  // Stats
+  const firstDay = today.substring(0, 8) + '01';
+  const { data: monthData } = await db.from('bookings').select('id').gte('date', firstDay);
+  
+  document.getElementById('statToday').textContent = allToday.length;
+  document.getElementById('statUpcoming').textContent = allUpcoming.length;
+  document.getElementById('statTotal').textContent = (monthData || []).length;
+  document.getElementById('todayBadge').textContent = allToday.length;
+  document.getElementById('upcomingBadge').textContent = allUpcoming.length;
+
+  renderToday(allToday);
+  renderUpcoming(allUpcoming);
+}
+
+function renderToday(data) {
+  const list = document.getElementById('todayList');
+  if (!data.length) { list.innerHTML = '<div class="empty-state">No appointments today</div>'; return; }
+  list.innerHTML = data.map(b => bookingCard(b)).join('');
+}
+
+function renderUpcoming(data) {
+  const list = document.getElementById('upcomingList');
+  if (!data.length) { list.innerHTML = '<div class="empty-state">No upcoming appointments</div>'; return; }
+  list.innerHTML = data.map(b => bookingCard(b, true)).join('');
+}
+
+function bookingCard(b, showDate = false) {
+  const timeParts = b.time_slot.split(' ');
+  const time = timeParts[0];
+  const period = timeParts[1] || '';
+  const dateLabel = showDate ? ` · ${formatDate(b.date)}` : '';
+  return `
+    <div class="booking-card">
+      <div class="booking-time">
+        <div class="time">${time}</div>
+        <div class="period">${period}</div>
+      </div>
+      <div class="booking-info">
+        <div class="client">${b.client_name || 'Unknown'}</div>
+        <div class="details">30 min${dateLabel}</div>
+        <div class="phone">${b.client_phone || ''}</div>
+      </div>
+      <div class="barber-tag barber-${b.barber}">${b.barber}</div>
+    </div>`;
+}
+
+function formatDate(dateStr) {
+  const [yr, mo, dy] = dateStr.split('-');
+  const d = new Date(yr, mo-1, dy);
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function filterToday(barber, btn) {
+  document.querySelectorAll('#todayList').forEach(() => {});
+  btn.closest('.filter-tabs').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = barber === 'all' ? allToday : allToday.filter(b => b.barber === barber);
+  renderToday(filtered);
+}
+
+function filterUpcoming(barber, btn) {
+  btn.closest('.filter-tabs').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = barber === 'all' ? allUpcoming : allUpcoming.filter(b => b.barber === barber);
+  renderUpcoming(filtered);
+}
+</script>
+</body>
+</html>
