@@ -283,6 +283,31 @@
     background: linear-gradient(to bottom, rgba(14,14,14,0.3) 0%, rgba(14,14,14,0.5) 100%);
     z-index: 1;
   }
+
+  /* LANGUAGE SWITCHER */
+  .lang-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .lang-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--dark4);
+    background: var(--dark2);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .lang-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
 </style>
 </head>
 <body>
@@ -313,6 +338,11 @@
     <p>Book your appointment</p>
   </div>
 
+
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('ku')">کوردی</button>
+  </div>
   <!-- Top Tabs -->
   <div class="top-tabs">
     <button class="tab-btn active" id="tab-book" onclick="switchTab('book')">Book</button>
@@ -470,6 +500,144 @@ let state = { barber: null, date: null, time: null, name: '', phone: '' };
 let calMonth = new Date().getMonth();
 let calYear = new Date().getFullYear();
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+
+// ── Language switcher ────────────────────────────────────────────
+const translations = {
+  en: {
+    welcome: 'Welcome to',
+    subtitle: 'Premium Barbershop Experience',
+    startBooking: 'Start Booking',
+    chooseBarber: 'Choose your barber',
+    chooseDate: 'Choose a date',
+    chooseTime: 'Choose a time',
+    yourDetails: 'Your details',
+    confirmBooking: 'Confirm your booking',
+    continue: 'Continue →',
+    back: '← Back',
+    confirmBtn: 'Confirm Appointment',
+    bookAnother: 'Book Another Appointment',
+    fullName: 'Full Name',
+    namePlaceholder: 'e.g. John Smith',
+    phone: 'Phone Number',
+    phonePlaceholder: 'e.g. 07700 900123',
+    bookTab: 'Book',
+    myBookingTab: 'My Booking',
+    findAppointment: 'Find your appointment',
+    enterPhone: 'Enter your phone number',
+    findBtn: 'Find My Appointment',
+    upcomingAppointment: 'Upcoming Appointment',
+    cancelBtn: 'Cancel Appointment',
+    noBookings: 'No upcoming appointments found for this number.',
+    bookedIn: "You're booked in!",
+    barber: 'Barber',
+    date: 'Date',
+    time: 'Time',
+    duration: 'Duration',
+    thirtyMin: '30 minutes',
+    seeYou: 'will see you on',
+    seeYouEnd: '(UK time). See you then!',
+  },
+  ku: {
+    welcome: 'بە خێرهاتی بۆ',
+    subtitle: 'ئەزموونا سەرتاشخانەیا نایاب',
+    startBooking: 'دەست ب حجزکرنێ بکە',
+    chooseBarber: 'سەرتاشێ خۆ هەلبژێره',
+    chooseDate: 'ڕێکەفتەکێ هەلبژێره',
+    chooseTime: 'دەمەکێ هەلبژێره',
+    yourDetails: 'پێزانینێن تە',
+    confirmBooking: 'حجزکرنا خۆ پشتڕاست بکە',
+    continue: 'بەردەوام به →',
+    back: '← زڤرین',
+    confirmBtn: 'پشتڕاستکرنا ژڤانی',
+    bookAnother: 'حجزکرنا ژڤانەکێ دی',
+    fullName: 'ناڤێ سیانی',
+    namePlaceholder: 'نموونە: ئارام سەلیح',
+    phone: 'ژمارەیا تەلەفۆنێ',
+    phonePlaceholder: 'نموونە: 07700 900123',
+    bookTab: 'حجز بکە',
+    myBookingTab: 'حجزکرنێن من',
+    findAppointment: 'ل ژڤانێ خۆ بگەڕه',
+    enterPhone: 'ژمارەیا تەلەفۆنا خۆ بنڤێسه',
+    findBtn: 'ژڤانێ من ببینە',
+    upcomingAppointment: 'ژڤانێ بهێت',
+    cancelBtn: 'هەلوەشاندنا ژڤانی',
+    noBookings: 'چ ژڤانێن بهێت نەهاتنە دیتن.',
+    bookedIn: '!حجزا تە هاتە کرن',
+    barber: 'سەرتاش',
+    date: 'ڕێکەفت',
+    time: 'دەم',
+    duration: 'ماوێ دەمی',
+    thirtyMin: '٣٠ خولەک',
+    seeYou: 'دێ تە بینێ لە',
+    seeYouEnd: '(دەما UK). هینگێ دێ تە بینین!',
+  }
+};
+
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  const t = translations[lang];
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+
+  // Splash
+  document.querySelector('.splash-welcome').textContent = t.welcome;
+  document.querySelector('.splash-subtitle').textContent = t.subtitle;
+  document.querySelector('.splash-btn').textContent = t.startBooking;
+
+  // Tabs
+  document.getElementById('tab-book').textContent = t.bookTab;
+  document.getElementById('tab-mybooking').textContent = t.myBookingTab;
+
+  // Step labels
+  document.getElementById('sl1').textContent = t.chooseBarber.split(' ')[0];
+  document.getElementById('sl2').textContent = t.chooseDate.split(' ')[0];
+  document.getElementById('sl3').textContent = t.chooseTime.split(' ')[0];
+  document.getElementById('sl4').textContent = t.yourDetails.split(' ')[0];
+  document.getElementById('sl5').textContent = t.confirmBooking.split(' ')[0];
+
+  // Section titles
+  const sectionTitles = document.querySelectorAll('.section-title');
+  if (sectionTitles[0]) sectionTitles[0].textContent = t.chooseBarber;
+  if (sectionTitles[1]) sectionTitles[1].textContent = t.chooseDate;
+  if (sectionTitles[2]) sectionTitles[2].innerHTML = t.chooseTime + ' <span style="color:var(--text-faint);font-size:10px;">(UK time · GMT/BST)</span>';
+  if (sectionTitles[3]) sectionTitles[3].textContent = t.yourDetails;
+  if (sectionTitles[4]) sectionTitles[4].textContent = t.confirmBooking;
+
+  // Buttons
+  document.getElementById('btn1').textContent = t.continue;
+  document.getElementById('btn2').textContent = t.continue;
+  document.getElementById('btn3').textContent = t.continue;
+  document.getElementById('btn4').textContent = t.continue;
+  document.getElementById('btnConfirm').textContent = t.confirmBtn;
+
+  // Back buttons
+  document.querySelectorAll('.btn-back').forEach(b => b.textContent = t.back);
+
+  // Inputs
+  document.querySelector('#clientName').previousElementSibling.textContent = t.fullName;
+  document.querySelector('#clientName').placeholder = t.namePlaceholder;
+  document.querySelector('#clientPhone').previousElementSibling.textContent = t.phone;
+  document.querySelector('#clientPhone').placeholder = t.phonePlaceholder;
+
+  // Summary labels
+  const sumLabels = document.querySelectorAll('.summary-label');
+  if (sumLabels[0]) sumLabels[0].textContent = t.barber;
+  if (sumLabels[1]) sumLabels[1].textContent = t.date;
+  if (sumLabels[2]) sumLabels[2].textContent = t.time;
+  if (sumLabels[3]) sumLabels[3].textContent = t.duration;
+
+  // My booking
+  document.querySelector('#myBookingFlow .section-title').textContent = t.findAppointment;
+  document.querySelector('#lookupPhone').previousElementSibling.textContent = t.enterPhone;
+  document.querySelector('#lookupPhone').placeholder = t.phonePlaceholder;
+  document.querySelector('#myBookingFlow .btn-primary').textContent = t.findBtn;
+
+  // Success screen
+  document.querySelector('.btn-new').textContent = t.bookAnother;
+}
 
 // ── Tab switching ───────────────────────────────────────────────
 function switchTab(tab) {
